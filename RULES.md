@@ -2,7 +2,8 @@
 
 `src/engine/rules.ts` implements these rules; the switchable choices live in
 `src/engine/ruleset.ts`. Each decision (D#) has a hand-computed test in
-`src/engine/rules.zanzibar.test.ts`. Older behaviour tests are in `rules.test.ts`.
+`src/engine/rules.zanzibar.test.ts` (D1–D8) or `src/engine/rules.donkers.test.ts` (D9, D12,
+D13 and the published game). Older behaviour tests are in `rules.test.ts`.
 
 ## Sources (checked 2026-11-09)
 
@@ -15,9 +16,15 @@ record of the Zanzibar masters' rules (1991–95):
 | W | Wikipedia, "Bao (game)", and gambiter.com's Bao page (same de Voogt-based text) | Short |
 | A | K.I.B.A. "Bao: sum-up of rules", revised by N. Vessella (abstractstrategygames.blogspot.com, 2011) | Most detailed; numbered sections; some broken cross-references |
 
-These primary sources could not be reached and are **still to check**:
+Added 2026-11-09 (Seed Mind 0.3):
+
+| Key | Source | Notes |
+|-----|--------|-------|
+| DK | J. Donkers, *Nosce Hostem* (PhD thesis, Universiteit Maastricht, 2003), **appendix C "Zanzibar Bao Rules for the Computer"**, pp. 163–168, "based on De Voogt's (1995) thesis"; [PDF](https://project.dke.maastrichtuniversity.nl/games/files/phd/Donkers_thesis.pdf) | Numbered rules (1.1–4.1c), a notation, and a **complete master game** (figure C.4: Ramadhan v Kijumbe, Zanzibar, 17-10-1994). The closest thing to a primary source we can read; it is written by de Voogt's later co-author and adapted for computer play |
+
+Still not reached (**to check**):
 - de Voogt, *Limits of the Mind* (1995): the Scribd copy is truncated;
-- Donkers & Uiterwijk, "Programming Bao" (2002): the archive copy is blocked;
+- Donkers & Uiterwijk, "Programming Bao" (2002): the CiteSeerX copy was not fetched;
 - Kronenburg, Donkers & de Voogt, "Never-Ending Moves in Bao", *ICGA Journal* 29(2), 2006: abstract only;
 - Rob Nierse's Game Cabinet rules: connection refused.
 
@@ -28,6 +35,7 @@ Board Game Arena's Bao help page describes a simplified game with no namua, so i
 | Id | Name | Use |
 |----|------|-----|
 | `zanzibar` | Zanzibar (de Voogt) | **Default** for new games |
+| `donkers` | Zanzibar, computer rules (Donkers) | DK's computer rules: nyumba works in namua only, no mtaji taxing, D9 single-kete restriction, D12 no lone-kichwa suicide, D13 safari choice at any house size, any house exempt from takasia. Added in 0.3 |
 | `v1` | Simplified (Seed Mind 0.1) | The 0.1.0 rules; kept so games saved by 0.1.0 (no `ruleset` field) replay exactly |
 
 ## Board and names
@@ -84,22 +92,47 @@ After each sowing lands in pit `p`:
 |---|---------------------|----------|--------|
 | D1 | Captures in the kichwa or kimbi (inner 0, 1, 6, 7) re-enter from the **nearest kichwa** | RP "no choice … kichwa or kimbi"; A 1.4.5; W | **Confirmed.** All three sources produce the same behaviour |
 | D2 | Free kichwa choice only for a capture with no sowing direction yet (a namua capture from a middle pit). Every later capture, and the first capture of a mtaji turn, keeps the current direction | RP summary; A 1.4.3, 1.6.1, 2.2.2, 3.4.1; W | **Confirmed** |
-| D3 | The nyumba keeps its powers in **both stages**, but only while it holds **6 or more** kete (counting the kete that has just landed). It is lost when its whole content is sown (safari, or sowing it while under 6), when it is captured, or when it is emptied | RP "do not apply if fewer than six"; A 4.2.1.3; W (powers until first sown; no stage limit) | **Changed in Phase 1** (0.1 had namua only and no threshold). A 3.2 says ownership in mtaji ends at "the first harvest", which is unclear and not adopted. Option `nyumbaStages`, `nyumbaMinSeeds` |
-| D3b | **Mtaji taxing:** a mtaji turn started from a working nyumba sows only 2 kete, and the house keeps its powers | W (mtaji taxing); A silent | Adopted from W. Option `mtajiTaxing`. W also lists variants (taxing only when no other move; safari compulsory), which are not implemented |
+| D3 | The nyumba keeps its powers in **both stages**, but only while it holds **6 or more** kete (counting the kete that has just landed). It is lost when its whole content is sown (safari, or sowing it while under 6), when it is captured, or when it is emptied | RP "do not apply if fewer than six"; A 4.2.1.3; W (powers until first sown; no stage limit) | **Changed in Phase 1** (0.1 had namua only and no threshold). A 3.2 says ownership in mtaji ends at "the first harvest". **DK 3.2 sides with A: no powers in mtaji** (see below), adopted in `donkers`. Option `nyumbaStages`, `nyumbaMinSeeds` |
+| D3b | **Mtaji taxing:** a mtaji turn started from a working nyumba sows only 2 kete, and the house keeps its powers | W (mtaji taxing); A silent | Adopted from W. Option `mtajiTaxing`. W also lists variants (taxing only when no other move; safari compulsory), which are not implemented. **DK has no mtaji taxing** (`donkers`) |
 | D4 | Namua takasa may not start from a working nyumba unless it is the only filled inner pit; then it is **taxed** (put a kete in, sow 2) | RP "Only your nyumba remaining"; A 2.3.2 | **Confirmed** (now also needs 6+, per D3) |
 | D5 | A never-ending sowing is illegal. It is detected exactly: once more than 160 kete have been sown, any repeat of the full in-turn state means a loop (with a 4000-kete backstop). If only never-ending moves remain, the player has no legal move and loses | A 1.5.6 (illegal; no finite move = loss); RP (no draws); the 2006 ICGA note confirms these moves exist | **Confirmed** (A); exact detection added in Phase 1. A real example is in the tests |
 | D6 | A player with an empty inner row has lost, even with kete in hand | A 1.2.1; RP; W | **Confirmed** |
 | D7 | The game ends as soon as an inner row is empty, **including your own**: emptying your own front row loses at once | A 1.2.1, 1.5.3.1, 3.3.2; W | **Changed in Phase 1** (0.1 only checked the side to move) |
 | D8 | **Takasia / mtaji moja** (mtaji stage): after a takasa turn that leaves the mover exactly **one** capture, that threatened opponent pit is blocked for the opponent's next turn. If that turn is also takasa, it may not start from the blocked pit, and a relay landing on it stops there. Exemptions: the opponent's working nyumba, its only filled inner pit, or its only inner pit with 2+. If every takasa start is blocked, the block is waived | RP (mtaji moja, in the mtaji section); A 5.1, 5.1.1, 1.6.3 | **Added in Phase 1.** RP and A word this differently and A's text is garbled, so this is a best reading. Option `takasia` (`off` / `mtaji` / `always`) |
-| D9 | *Not adopted:* A 2.3.3 bans starting a namua takasa from a single-kete pit when the house is lost and other pits hold 2+ | Only A, and its wording is unclear | Open |
+| D8b | Which house is exempt from takasia: a *working* nyumba (`zanzibar`), or the nyumba pit always (`donkers`) | RP; DK 4.1a "if it is the house", 4.1c | Option `takasiaHouse` |
+| D9 | A namua takasa may not start from a single-kete pit while another front pit holds 2+, **unless the house is still owned** (even under 6) | A 2.3.3; **DK 2.4c** (clear wording) | **Confirmed by DK.** Adopted in `donkers` (option `namuaSingleKete`); not in `zanzibar`, whose meaning is fixed |
 | D10 | Stage is per player: you are in namua while **you** have kete in hand | A 3.1 says "global", but the hands empty together in normal play | Same result in normal games; differs only for positions entered in the board reader |
-| D11 | Captured kete keep sowing round both your rows if there are enough of them | A, W (relay loop); RP "in your front row" is ambiguous | Open |
+| D11 | Captured kete keep sowing round both your rows if there are enough of them | A, W (relay loop); DK 1.3/1.4 ("sowing them … at the own side", own two rows); RP "in your front row" is ambiguous | **Confirmed by DK** |
+| D12 | A takasa from a lone kichwa (the only filled front pit) toward the back row: legal and loses at once (`zanzibar`, D7), or **illegal** (`donkers`) | DK 2.4a, 3.5b | Option `kichwaToBack`. Same outcome for a sensible player; matters for move lists and weak levels |
+| D13 | In a capture turn that ends in the owned nyumba, the stop/safari choice: only while it holds 6+ (`zanzibar`), or **at any size** (`donkers`) | DK 2.5b(2) states no minimum for capture moves (6+ only for takasa) | Option `safariMinSeeds`; DK may simply omit the threshold |
+
+### What DK says about D3, D3b and D8
+
+- **D3 (nyumba in mtaji):** DK 2.5a/3.2: the house stays *owned* until the first capture in
+  mtaji, but "the namua rules for the house (2.4b, 2.4c and 2.5b) do not apply anymore": no
+  stop, no safari, no taxing in mtaji. This is A's "first harvest" reading, against W's. The
+  `donkers` ruleset adopts it (`nyumbaStages: 'namua'`). Ownership after namua only matters for
+  takasia, and `donkers` exempts the house pit always, so it is not tracked further.
+- **D3b (mtaji taxing):** DK has no mtaji taxing (`mtajiTaxing: false` in `donkers`).
+- **D8 (takasia):** DK 4.1: "(This can only happen in mtaji stage.)", and only when the
+  opponent "also must takasa next move". Seed Mind's block only restricts takasa turns, so a
+  side that can capture is never affected: the same behaviour.
+
+## Published game
+
+DK figure C.4, **Ramadhan v Kijumbe (Zanzibar, 17 October 1994, North wins, South resigns
+after move 26)**, is in `src/engine/goldenGames.ts`. Every one of its 52 plies matches exactly
+one legal turn of ours, with the same capture/takasa classification, under **all three**
+rulesets; North's 12th move ends in the nyumba and North plays the house on move 15, as the
+record says. So the game confirms the engine but does not decide between the readings: none
+of its moves touch D3, D9, D12 or D13.
 
 ## Open questions to settle with a primary source
 
-- D3: the exact moment the nyumba stops working in mtaji (first capture in A, versus first
-  time its content is sown in W).
-- D3b: whether mtaji taxing is optional, compulsory, or only allowed when there is no other move.
-- D8: whether takasia also applies in namua, and whether it applies when the blocked side
-  can capture.
-- D9 and D11, above.
+- Default ruleset: `zanzibar` (the three secondary transcriptions) or `donkers` (DK, nearer to
+  de Voogt 1995). Seed Mind 0.3 keeps `zanzibar` as the default and offers `donkers`.
+- D13: whether DK's missing 6-kete threshold for the safari choice is deliberate.
+- DK 1.2: "the game ends if the front row of a player is empty (**even during a move**)".
+  Seed Mind only checks at the end of a turn. Not implemented in any ruleset yet.
+- D3b variants in W (taxing only when there is no other move; safari compulsory).
+- de Voogt 1995 itself, to compare with DK's computer adaptation.

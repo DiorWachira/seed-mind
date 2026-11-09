@@ -1,4 +1,4 @@
-﻿import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices } from '@playwright/test';
 
 /** End-to-end tests run against the production build (vite preview), like the deployed site. */
 export default defineConfig({

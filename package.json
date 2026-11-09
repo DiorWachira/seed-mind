@@ -19,7 +19,7 @@
     "levels": "vite-node scripts/levels.ts",
     "i18n": "vite-node scripts/i18n-keys.ts",
     "icons": "node scripts/icons.mjs",
-    "shots": "node scripts/shots.mjs"
+    "shots": "vite-node scripts/shots.ts"
   },
   "dependencies": {
     "@fontsource-variable/outfit": "^5.3.0",

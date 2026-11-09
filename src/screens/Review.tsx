@@ -41,6 +41,8 @@ function lineText(pos: Position, line: Move[], viewer: Side, rules: ReturnType<t
 }
 
 const verdictWord = (t: T, loss: number) => t(verdictFor(loss));
+/** Losses against a forced win or loss are mate scores (hundreds of "kete"): say "decisive" instead. */
+const lossText = (t: T, loss: number) => (loss >= 100 ? t('decisive') : loss.toFixed(1));
 
 function Library({ current }: { current: string | null }) {
   const t = useT();
@@ -287,7 +289,7 @@ export function Review({ id, code }: { id: string | null; code: string | null })
             <div className="stat"><span className="lbl">{t('Result')}</span><span className="disp stat-v">{t(resultText(game).split(' · ')[0])}</span>{game.result && <span className="muted" style={{ fontSize: 14 }}>{t(resultText(game).split(' · ')[1] ?? '')}</span>}</div>
             <div className="stat"><span className="lbl">{t('Matched the coach')}</span><span className="disp num stat-v">{t('{a} of {b}', { a: matched, b: subjectPlies.length })}</span><span className="muted" style={{ fontSize: 14 }}>{t('Within half a kete of the best move')}</span></div>
             <div className="stat"><span className="lbl">{t('Costly moves')}</span><span className="disp num stat-v">{counts.blunder + counts.mistake}</span><span className="muted" style={{ fontSize: 14 }}>{t('{b} blunders, {m} mistakes, {i} inaccuracies', { b: counts.blunder, m: counts.mistake, i: counts.inaccuracy })}</span></div>
-            <div className="stat"><span className="lbl">{t('Peak lead')}</span><span className="disp num stat-v">{peak > 0 ? `+${peak.toFixed(1)}` : '—'}</span>{peak > 0 && <span className="muted" style={{ fontSize: 14 }}>{t('After ply {n}', { n: peakAt + 1 })}</span>}</div>
+            <div className="stat"><span className="lbl">{t('Peak lead')}</span><span className="disp num stat-v">{peak > 0 ? <><span className="sign">+</span>{peak.toFixed(1)}</> : '—'}</span>{peak > 0 && <span className="muted" style={{ fontSize: 14 }}>{t('After ply {n}', { n: peakAt + 1 })}</span>}</div>
           </section>
           <div className="row">
             <span className="lbl">{t('Analysis')}</span>
@@ -302,7 +304,7 @@ export function Review({ id, code }: { id: string | null; code: string | null })
         <figure className="rings-wrap">
           <GameRings rings={rings} turning={allScars} selected={current} onSelect={setSel}
             label={t('Growth rings of this game: one ring per move, wide for strong moves, narrow for costly ones, ochre scars on turning points. Use the arrow keys to read rings and Enter to open one.')}
-            describeRing={(r, i) => `${t('Move {n}', { n: i + 1 })} · ${pname(r.mover as Side)} · ${r.note} · ${r.loss < 0.5 ? t('matched the coach') : t('cost {k} kete ({v})', { k: r.loss.toFixed(1), v: verdictWord(t, r.loss) })}`} />
+            describeRing={(r, i) => `${t('Move {n}', { n: i + 1 })} · ${pname(r.mover as Side)} · ${r.note} · ${r.loss < 0.5 ? t('matched the coach') : t('cost {k} kete ({v})', { k: lossText(t, r.loss), v: verdictWord(t, r.loss) })}`} />
           <figcaption className="lbl fig-cap">{local ? t('Fig. 2 · The game as a tree section. Each ring is one ply; wide rings are strong moves, narrow rings gave kete away, scars mark turning points.') : t('Fig. 2 · Your game as a tree section. Each ring is one of your moves; wide rings are strong moves, narrow rings gave kete away, scars mark turning points.')}</figcaption>
         </figure>
       </section>
@@ -330,7 +332,7 @@ export function Review({ id, code }: { id: string | null; code: string | null })
         </div>
         <p role="status" className="num" style={{ fontSize: 16 }}>
           <strong>{t('Ply {n}', { n: current + 1 })}</strong> · {pname(pa.mover)} · {t('{who} ahead by {n} kete', { who: evals[current] >= 0 ? pname(viewer) : pname(other(viewer)), n: fmt(evals[current]) })}
-          {bySubject && (pa.loss >= 0.5 ? ` · ${t('cost {k} against the coach', { k: pa.loss.toFixed(1) })}` : ` · ${t('matched the coach')}`)}
+          {bySubject && (pa.loss >= 0.5 ? ` · ${t('cost {k} against the coach', { k: lossText(t, pa.loss) })}` : ` · ${t('matched the coach')}`)}
         </p>
       </section>
 
@@ -345,7 +347,7 @@ export function Review({ id, code }: { id: string | null; code: string | null })
               const line = lineText(p, x.pv?.length ? x.pv : [x.best], viewer, rules);
               return (
                 <button key={x.ply} type="button" className="turn" aria-pressed={x.ply === current} onClick={() => setSel(x.ply)}>
-                  <span className="lbl num" style={{ color: 'var(--ochre-ink)' }}>{t('Ply {n}', { n: x.ply + 1 })} · {t('cost {k}', { k: x.loss.toFixed(1) })} · {verdictWord(t, x.loss)}</span>
+                  <span className="lbl num" style={{ color: 'var(--ochre-ink)' }}>{t('Ply {n}', { n: x.ply + 1 })} · {t('cost {k}', { k: lossText(t, x.loss) })} · {verdictWord(t, x.loss)}</span>
                   <span className="disp" style={{ fontSize: 22, lineHeight: 1.2 }}>{d?.headline ?? t('Your move')}</span>
                   <span className="line"><span className="lbl">{t('Coach’s line')}</span><span className="num">{line.join('  ·  ')}</span></span>
                 </button>

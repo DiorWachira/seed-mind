@@ -47,7 +47,7 @@ export function captureTargets(pos: Position, side: Side, rules: RuleOptions = D
 /** Takasia exemptions (D8): the owner's working nyumba, its only filled inner pit, its only inner pit with 2+. */
 function takasiaExempt(pos: Position, owner: Side, q: number, rules: RuleOptions): boolean {
   const p = pos.pits[owner];
-  if (q === NYUMBA && houseWorks(pos, owner, rules)) return true;
+  if (q === NYUMBA && (rules.takasiaHouse === 'pit' || houseWorks(pos, owner, rules))) return true;
   let filled = 0;
   let multi = 0;
   for (let i = 0; i < 8; i++) {
@@ -84,6 +84,9 @@ export function simulate(pos: Position, move: Move, trace = false, rules: RuleOp
 
   const myHouse = (): boolean =>
     nyumba[s] && me[NYUMBA] >= rules.nyumbaMinSeeds && (rules.nyumbaStages === 'both' || namua);
+  /** D13: the stop/safari choice in a capture turn (threshold may differ from the takasa stop). */
+  const safariHouse = (): boolean =>
+    nyumba[s] && me[NYUMBA] >= (rules.safariMinSeeds ?? rules.nyumbaMinSeeds) && (rules.nyumbaStages === 'both' || namua);
 
   const lift = (p: number, n: number): void => {
     me[p] -= n;
@@ -194,12 +197,14 @@ export function simulate(pos: Position, move: Move, trace = false, rules: RuleOp
       dir = r.dir;
       continue;
     }
-    if (p === NYUMBA && myHouse()) {
-      if (kind === 'takata') { endReason = 'nyumba'; break; }
+    if (p === NYUMBA && kind === 'capture' && safariHouse()) {
       if (move.safari === null) return { need: 'safari' };
       if (!move.safari) { endReason = 'nyumba'; break; }
       nyumba[s] = false;
       safariTaken = true;
+    } else if (p === NYUMBA && kind === 'takata' && myHouse()) {
+      endReason = 'nyumba';
+      break;
     }
     // Takasia: a non-capturing relay may not lift the blocked pit (D8).
     if (kind === 'takata' && p === blocked) { endReason = 'blocked'; break; }
@@ -269,13 +274,18 @@ export function legalMoves(pos: Position, rules: RuleOptions = DEFAULT_RULES): C
     // Takasa. A working house (counting the placed kete) is only taxed when it is the only filled inner pit (D4).
     const houseOnly = filled.length === 1 && filled[0] === NYUMBA;
     const houseWouldWork = pos.nyumba[s] && me[NYUMBA] + 1 >= rules.nyumbaMinSeeds;
-    const starts = filled.filter((i) => !(i === NYUMBA && houseWouldWork && !houseOnly));
+    let starts = filled.filter((i) => !(i === NYUMBA && houseWouldWork && !houseOnly));
+    // D9: no single-kete start while another front pit has 2+, unless the house is still owned.
+    if (rules.namuaSingleKete && !pos.nyumba[s]) {
+      const multi = starts.filter((i) => me[i] > 1);
+      if (multi.length > 0) starts = multi;
+    }
     const free = starts.filter((i) => i !== blocked);
     for (const i of free.length > 0 ? free : starts) {
       expand(pos, { pit: i, dir: 1, kichwa: null, safari: null }, out, rules);
       expand(pos, { pit: i, dir: -1, kichwa: null, safari: null }, out, rules);
     }
-    return out;
+    return noKichwaSuicide(pos, out, rules);
   }
 
   const all: Candidate[] = [];
@@ -291,7 +301,26 @@ export function legalMoves(pos: Position, rules: RuleOptions = DEFAULT_RULES): C
   const pool = unblocked.length > 0 ? unblocked : all;
   // A non-capturing turn must start from the inner row when it can.
   const inner = pool.filter((c) => c.move.pit < 8);
-  return inner.length > 0 ? inner : pool;
+  return noKichwaSuicide(pos, inner.length > 0 ? inner : pool, rules);
+}
+
+/**
+ * D12 (Donkers 2.4a, 3.5b): when a lone kichwa is the only filled front pit, a takasa from it
+ * may not sow toward the back row, which would empty the front row.
+ */
+function noKichwaSuicide(pos: Position, cs: Candidate[], rules: RuleOptions): Candidate[] {
+  if (rules.kichwaToBack !== 'illegal') return cs;
+  const me = pos.pits[pos.toMove];
+  let filled = -1;
+  for (let i = 0; i < 8; i++) {
+    if (me[i] === 0) continue;
+    if (filled >= 0) return cs;
+    filled = i;
+  }
+  if (filled !== 0 && filled !== 7) return cs;
+  const towardBack = filled === 0 ? -1 : 1;
+  const kept = cs.filter((c) => !(c.move.pit === filled && c.move.dir === towardBack && c.result.kind === 'takata'));
+  return kept.length > 0 ? kept : cs;
 }
 
 /**

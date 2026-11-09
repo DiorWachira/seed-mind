@@ -37,6 +37,8 @@ function RulesTab({ ruleset }: { ruleset: RulesetId }) {
       : t('Only during namua')],
     [t('Taxing in mtaji'), o.mtajiTaxing ? t('Yes: a turn from a working nyumba sows only two kete') : t('No')],
     [t('Takasia'), o.takasia === 'off' ? t('Off') : o.takasia === 'mtaji' ? t('In mtaji: a lone threatened pit is protected for one turn') : t('In both stages')],
+    [t('Single-kete starts'), o.namuaSingleKete ? t('In namua, not from a pit with one kete while another front pit has two or more, unless your house is still owned') : t('Allowed')],
+    [t('A lone kichwa'), o.kichwaToBack === 'illegal' ? t('May not sow toward the back row (it would empty the front row)') : t('May sow toward the back row, which loses at once')],
     [t('Captures'), t('Compulsory. Kichwa and kimbi captures re-enter from the nearest kichwa.')],
     [t('Winning'), t('Empty your opponent’s front row, or leave them no legal move. Emptying your own front row loses.')],
   ];
