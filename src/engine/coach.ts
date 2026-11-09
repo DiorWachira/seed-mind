@@ -18,6 +18,10 @@ export interface Advice {
   targets: number[];
   /** Mover pits sown, in order, for the raking light. */
   path: number[];
+  /** The expected line, starting with this move. */
+  pv: Move[];
+  /** Every legal move with its score (kete, mover's view), best first. Answers "why not this move?". */
+  scores: { move: Move; score: number }[];
 }
 
 const kichwaWord = (k: 0 | 7): string => (k === 0 ? 'left' : 'right');
@@ -95,7 +99,51 @@ export function advise(pos: Position, opts = { maxDepth: 5, timeMs: 700 }, rules
   if (!r.best) return null;
   const { headline, why } = describe(pos, r.best, pos.toMove, rules);
   const { path, targets } = lightFor(pos, r.best, rules);
-  return { move: r.best.move, headline, why, score: r.score, depth: r.depth, startPit: r.best.move.pit, targets, path };
+  return {
+    move: r.best.move, headline, why, score: r.score, depth: r.depth, startPit: r.best.move.pit, targets, path,
+    pv: r.pv, scores: r.scores.map((x) => ({ move: x.cand.move, score: x.score })),
+  };
+}
+
+export interface WhyNot {
+  /** Kete given up against the coach's move (>= 0). */
+  loss: number;
+  verdict: 'best' | 'fine' | 'inaccuracy' | 'mistake' | 'blunder';
+  /** One plain sentence comparing the two. */
+  summary: string;
+  /** What the chosen move does, and why it falls short. */
+  chosen: { headline: string; why: string };
+  coach: { headline: string; why: string };
+}
+
+/** Grades a loss in kete into words (shared by Play and Review). */
+export function verdictFor(loss: number): WhyNot['verdict'] {
+  if (loss < 0.05) return 'best';
+  if (loss < 0.5) return 'fine';
+  if (loss < 1.5) return 'inaccuracy';
+  if (loss < 4) return 'mistake';
+  return 'blunder';
+}
+
+/** "Why not this move?": compares a candidate with the coach's pick, using the advice's scores. */
+export function whyNot(pos: Position, advice: Advice, cand: Candidate, viewer: Side, rules: RuleOptions = DEFAULT_RULES): WhyNot | null {
+  const best = advice.scores[0];
+  const mine = advice.scores.find((x) => sameMove(x.move, cand.move));
+  if (!best || !mine) return null;
+  const loss = Math.max(0, best.score - mine.score);
+  const verdict = verdictFor(loss);
+  const bestCand = legalMoves(pos, rules).find((c) => sameMove(c.move, best.move));
+  const chosen = describe(pos, cand, viewer, rules);
+  const coach = bestCand ? describe(pos, bestCand, viewer, rules) : { headline: advice.headline, why: advice.why };
+  const k = loss.toFixed(1);
+  const decisive = Math.abs(best.score) > 900 || Math.abs(mine.score) > 900;
+  let summary: string;
+  if (verdict === 'best') summary = 'This is the coach’s move too.';
+  else if (decisive && best.score > 900 && mine.score < 900) summary = 'The coach’s move wins by force; this one lets the win slip.';
+  else if (decisive && mine.score < -900) summary = 'This move loses by force. The coach’s move holds on.';
+  else if (verdict === 'fine') summary = `A good move: within ${k} kete of the coach’s.`;
+  else summary = `This gives up about ${k} kete against the coach’s move (${verdict}).`;
+  return { loss, verdict, summary, chosen, coach };
 }
 
 export interface PlyAnalysis {
@@ -108,6 +156,9 @@ export interface PlyAnalysis {
   loss: number;
   /** Evaluation after this ply from South's (seat 0) point of view. */
   evalSouth: number;
+  /** The coach's line from this position, starting with its best move. */
+  pv: Move[];
+  depth: number;
 }
 
 /** Scores the played move against the best one at a fixed depth. */
@@ -117,5 +168,5 @@ export function analysePly(pos: Position, played: Move, ply: number, opts = { ma
   const mine = r.scores.find((x) => sameMove(x.cand.move, played)) ?? best;
   const loss = Math.max(0, best.score - mine.score);
   const evalSouth = pos.toMove === 0 ? mine.score : -mine.score;
-  return { ply, mover: pos.toMove, best: best.cand.move, bestScore: best.score, playedScore: mine.score, loss, evalSouth };
+  return { ply, mover: pos.toMove, best: best.cand.move, bestScore: best.score, playedScore: mine.score, loss, evalSouth, pv: r.pv, depth: r.depth };
 }

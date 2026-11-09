@@ -25,6 +25,12 @@ export interface BoardProps {
   /** Pit currently receiving a seed during animation. */
   hot?: [Side, number] | null;
   label: string;
+  /** Read-only boards: hovering or focusing a pit reports it (null when the pointer leaves). */
+  onInspect?: (cell: [Side, number] | null) => void;
+  /** Read-only boards: activating a pit (click or Enter). */
+  onActivate?: (cell: [Side, number]) => void;
+  /** Pit ringed by an inspection readout. */
+  inspected?: [Side, number] | null;
 }
 
 const dotCache = new Map<number, { x: string; y: string }[]>();
@@ -52,7 +58,7 @@ function PitBody({ n }: { n: number }) {
   );
 }
 
-export function Board({ pos, viewer, pickable, onPick, selected, coach, youMark, coachMark, hot, label }: BoardProps) {
+export function Board({ pos, viewer, pickable, onPick, selected, coach, youMark, coachMark, hot, label, onInspect, onActivate, inspected }: BoardProps) {
   const cells = [];
   for (let r = 0; r < 4; r++) {
     for (let c = 0; c < 8; c++) {
@@ -71,6 +77,7 @@ export function Board({ pos, viewer, pickable, onPick, selected, coach, youMark,
       if (youMark && youMark[0] === side && youMark[1] === i) cls.push('you');
       if (coachMark && coachMark[0] === side && coachMark[1] === i) cls.push('coach');
       if (hot && hot[0] === side && hot[1] === i) cls.push('hot');
+      if (inspected && inspected[0] === side && inspected[1] === i) cls.push('insp');
       const isBlocked = side === pos.toMove && pos.blocked === i;
       if (isBlocked) cls.push('blocked');
       const house = i === NYUMBA && pos.nyumba[side] ? ' nyumba' : '';
@@ -86,6 +93,16 @@ export function Board({ pos, viewer, pickable, onPick, selected, coach, youMark,
             </button>
           </div>,
         );
+      } else if (onInspect || onActivate) {
+        cells.push(
+          <div className="cell" key={`${r}-${c}`}>
+            <button type="button" className="pit-btn" aria-label={name}
+              onMouseEnter={() => onInspect?.([side, i])} onFocus={() => onInspect?.([side, i])}
+              onClick={() => { onInspect?.([side, i]); onActivate?.([side, i]); }}>
+              <span className={cls.join(' ')} style={{ animationDelay: `${delay}ms` }}><PitBody n={n} /></span>
+            </button>
+          </div>,
+        );
       } else {
         cells.push(
           <div className="cell" key={`${r}-${c}`}>
@@ -96,7 +113,7 @@ export function Board({ pos, viewer, pickable, onPick, selected, coach, youMark,
     }
   }
   return (
-    <div className="slab" role="group" aria-label={label}>
+    <div className="slab" role="group" aria-label={label} onMouseLeave={onInspect ? () => onInspect(null) : undefined}>
       <div className="pits">{cells}</div>
     </div>
   );

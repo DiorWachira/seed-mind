@@ -1,0 +1,30 @@
+import { chromium } from '@playwright/test';
+const out = process.argv[2];
+const base = 'http://localhost:4173/';
+const browser = await chromium.launch();
+const errors = [];
+async function shot(name, hash, { w = 1360, h = 900, dark = false, guide = 'done', full = true, before } = {}) {
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, colorScheme: dark ? 'dark' : 'light', deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(`${name}: ${m.text()}`); });
+  page.on('pageerror', (e) => errors.push(`${name}: ${e.message}`));
+  await page.addInitScript((g) => { localStorage.setItem('seedmind.guide', JSON.stringify(g)); localStorage.setItem('seedmind.sound', 'false'); }, guide);
+  await page.goto(base + hash);
+  await page.waitForTimeout(1800);
+  if (before) await before(page);
+  const ow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  if (ow > 0) errors.push(`${name}: horizontal overflow ${ow}px`);
+  await page.screenshot({ path: `${out}/${name}.png`, fullPage: full });
+  await ctx.close();
+}
+await shot('overview', '#/');
+await shot('overview-dark', '#/', { dark: true });
+await shot('overview-375', '#/', { w: 375, h: 812 });
+await shot('play', '#/play');
+await shot('play-375', '#/play', { w: 375, h: 812 });
+await shot('review-empty', '#/review');
+await shot('reader', '#/reader');
+await shot('notfound', '#/nowhere');
+await shot('invite', '#/', { guide: 'new', full: false, before: async (p) => p.waitForTimeout(800) });
+await browser.close();
+console.log(errors.length ? errors.join('\n') : 'no console errors, no overflow');

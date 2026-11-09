@@ -11,17 +11,18 @@ class EngineClient {
   private seq = 0;
   private pending = new Map<number, Pending>();
 
+  private onMessage = (e: MessageEvent<WorkerResponse>) => {
+    const m = e.data;
+    const p = this.pending.get(m.id);
+    if (!p) return;
+    if (m.type === 'progress') { p.onProgress?.(m.done, m.total); return; }
+    this.pending.delete(m.id);
+    if (m.type === 'error') p.reject(new Error(m.message));
+    else p.resolve(m);
+  };
+
   constructor() {
-    this.worker = new Worker(new URL('../engine/engine.worker.ts', import.meta.url), { type: 'module' });
-    this.worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
-      const m = e.data;
-      const p = this.pending.get(m.id);
-      if (!p) return;
-      if (m.type === 'progress') { p.onProgress?.(m.done, m.total); return; }
-      this.pending.delete(m.id);
-      if (m.type === 'error') p.reject(new Error(m.message));
-      else p.resolve(m);
-    };
+    this.worker = this.spawn();
   }
 
   private send(req: WorkerRequestBody, onProgress?: Pending['onProgress']): Promise<WorkerResponse> {
@@ -42,9 +43,23 @@ class EngineClient {
     return r.type === 'advise' ? r.advice : null;
   }
 
-  async analyse(positions: Position[], moves: Move[], rules: RuleOptions, onProgress?: Pending['onProgress']): Promise<PlyAnalysis[]> {
-    const r = await this.send({ type: 'analyse', positions, moves, rules }, onProgress);
+  async analyse(positions: Position[], moves: Move[], rules: RuleOptions, onProgress?: Pending['onProgress'], opts?: { maxDepth: number; timeMs: number }): Promise<PlyAnalysis[]> {
+    const r = await this.send({ type: 'analyse', positions, moves, rules, opts }, onProgress);
     return r.type === 'analyse' ? r.plies : [];
+  }
+
+  /** Stops the worker (and any running job) and starts a fresh one. */
+  restart() {
+    this.worker.terminate();
+    for (const p of this.pending.values()) p.reject(new Error('cancelled'));
+    this.pending.clear();
+    this.worker = this.spawn();
+  }
+
+  private spawn(): Worker {
+    const w = new Worker(new URL('../engine/engine.worker.ts', import.meta.url), { type: 'module' });
+    w.onmessage = this.onMessage;
+    return w;
   }
 }
 

@@ -17,7 +17,7 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
     } else {
       const plies: PlyAnalysis[] = [];
       for (let k = 0; k < req.moves.length; k++) {
-        plies.push(analysePly(req.positions[k], req.moves[k], k, undefined, req.rules));
+        plies.push(analysePly(req.positions[k], req.moves[k], k, req.opts, req.rules));
         post({ id: req.id, type: 'progress', done: k + 1, total: req.moves.length });
       }
       post({ id: req.id, type: 'analyse', plies });

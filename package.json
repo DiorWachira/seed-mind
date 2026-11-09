@@ -1,7 +1,7 @@
 {
   "name": "seed-mind",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bao la Kiswahili engine and coach: play the AI, review games, read a real board.",
   "type": "module",
   "scripts": {
@@ -10,7 +10,16 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "bench": "vite-node scripts/bench.ts",
+    "match": "vite-node scripts/match.ts",
+    "tune": "vite-node scripts/tune.ts",
+    "vision": "vite-node scripts/vision-check.ts",
+    "levels": "vite-node scripts/levels.ts",
+    "i18n": "vite-node scripts/i18n-keys.ts",
+    "icons": "node scripts/icons.mjs",
+    "shots": "node scripts/shots.mjs"
   },
   "dependencies": {
     "@fontsource-variable/outfit": "^5.3.0",
@@ -21,6 +30,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
+    "@types/node": "^22.20.5",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",

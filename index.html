@@ -3,15 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Seed Mind: play Bao la Kiswahili against an AI, get coached move by move, and review your games." />
-    <meta name="theme-color" content="#E7D8C2" />
+    <meta name="description" content="Seed Mind: play Bao la Kiswahili against an AI, get coached move by move, review your games and read a real board from a photo." />
+    <meta name="theme-color" content="#E7D8C2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#17100A" media="(prefers-color-scheme: dark)" />
+    <meta property="og:title" content="Seed Mind · Bao la Kiswahili coach" />
+    <meta property="og:description" content="Play Bao against Fundi, see the coach light, and review every move." />
     <title>Seed Mind</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Outfit:wght@300..700&display=swap" rel="stylesheet" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
   </head>
   <body>
+    <noscript>Seed Mind needs JavaScript: the Bao engine runs in your browser.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

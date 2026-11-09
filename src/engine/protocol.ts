@@ -5,7 +5,7 @@ import type { Move, Position } from './types';
 export type WorkerRequest =
   | { id: number; type: 'think'; pos: Position; level: number; rules: RuleOptions }
   | { id: number; type: 'advise'; pos: Position; rules: RuleOptions }
-  | { id: number; type: 'analyse'; positions: Position[]; moves: Move[]; rules: RuleOptions };
+  | { id: number; type: 'analyse'; positions: Position[]; moves: Move[]; rules: RuleOptions; opts?: { maxDepth: number; timeMs: number } };
 
 /** A request without its id (distributes over the union). */
 export type WorkerRequestBody = WorkerRequest extends infer R ? (R extends WorkerRequest ? Omit<R, 'id'> : never) : never;
