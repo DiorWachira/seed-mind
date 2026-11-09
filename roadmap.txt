@@ -1,0 +1,226 @@
+SEED MIND · ROADMAP AND HANDOFF
+================================
+Last updated: 2026-11-09 · version 0.2.0 (Phase 1 done, except primary-source checks)
+Location: C:\dev\Seed Mind
+
+If you are Claude Code picking this up: read this file top to bottom, then
+docs/PROJECT_GUIDE.md (how everything works, recipes, pitfalls), then RULES.md, then
+run the checks in section 3 before changing anything. Update section 2 (status) and the
+checkboxes in section 7 whenever you finish something.
+
+
+1. WHAT SEED MIND IS
+--------------------
+A web app for Bao la Kiswahili, the 4x8 mancala of Zanzibar and the Swahili coast:
+  - Play vs Fundi: an AI opponent with 9 strength levels.
+  - Coach light: shows the best move on the board (ochre ring and sowing path) and explains why.
+  - Game review: scores every move against the engine and finds your turning points.
+  - Board reader: enter a position from a real board (camera photo for reference, counts by
+    hand today; automatic counting is planned for Phase 5).
+
+Design source of truth: the "Seed Mind" Design canvas (4 artboards: Overview, Play,
+Review, Reader) at https://claude.ai/artifact/Ve17A4hmGQg4woK1qBd6kg (private to Dior).
+Concept name: "Growth Rings" (carved hardwood board, grey komwe seeds, tree-ring rounds).
+
+
+2. CURRENT STATUS (v0.2.0)
+--------------------------
+DONE and verified:
+  [x] Vite + React 18 + TypeScript scaffold; static build in dist/
+  [x] Rules engine (src/engine/rules.ts): namua, mtaji, compulsory captures, kimbi/kichwa
+      re-sowing, relay sowing, nyumba stop/safari/taxing, >15 wrap, win/loss
+  [x] Phase 1 (2026-11-09): every rule decision checked against three de Voogt-based
+      sources (rulespal, Wikipedia/gambiter, K.I.B.A. sum-up); RuleOptions with two
+      rulesets ("zanzibar" default, "v1" legacy); new rules: 6-seed nyumba threshold,
+      nyumba powers in mtaji, mtaji taxing, takasia/mtaji moja, exact never-ending-move
+      detection, immediate loss for emptying your own inner row
+  [x] 50 Vitest tests pass: hand-computed golden positions for D1-D8, pinned perft counts,
+      a real never-ending move, self-play invariants under both rulesets, replay of
+      0.1.0 saves. A mutation check (breaking the 6-seed rule and takasia) made the right
+      tests fail.
+  [x] Search: negamax alpha-beta, iterative deepening, transposition table, time budget
+  [x] 9 levels (Mwanafunzi … Fundi): depth, time and random noise per level
+  [x] Coach: best move, plain-language reasons (now including takasia), coach-light data
+  [x] Per-ply review analysis (3-ply search per move)
+  [x] Engine runs in Web Workers (separate workers for play, coach and review)
+  [x] Screens: Overview, Play, Review, Board reader; hash routing (#/play etc.)
+  [x] Play: "Rules for new games" selector; ruleset shown under the headline; the
+      takasia-blocked pit is cross-hatched and named in the move hint
+  [x] Sowing animation (respects prefers-reduced-motion; Skip button); take back;
+      Fundi-starts option
+  [x] Current game and the last 25 games saved in localStorage; each game stores its
+      ruleset (saves without one replay under "v1")
+  [x] Light/dark/auto theme; checked in the browser at desktop and phone (375px) widths,
+      no horizontal overflow, no console errors
+  [x] Board reader: camera (getUserMedia) + photo, count editor, 64-kete check, analyse,
+      "play on from here"
+
+NOT DONE / KNOWN LIMITS:
+  [ ] Primary sources not yet checked: de Voogt "Limits of the Mind" (1995), Donkers &
+      Uiterwijk "Programming Bao" (2002), Kronenburg/Donkers/de Voogt "Never-Ending Moves
+      in Bao" (ICGA J. 29(2), 2006). They could not be fetched (truncated, archive blocked,
+      or abstract only). See RULES.md "Open questions".
+  [ ] No golden tests from PUBLISHED games yet (no move-by-move record was reachable)
+  [ ] Board reader has no automatic seed counting yet (manual entry only)
+  [ ] Review depth is shallow (3 plies), so its "cost" numbers are rough
+  [ ] The evaluation function is hand-written and untuned
+  [ ] Fonts come from Google Fonts, so the app is not fully offline; no PWA yet
+  [ ] No end-to-end (browser) tests; UI has only been checked by hand
+  [ ] Not a git repository yet (run `git init` when you want version control)
+
+
+3. HOW TO RUN AND CHECK
+-----------------------
+  npm install
+  npm run dev          -> http://localhost:5173
+  npm test             -> Vitest engine tests (must stay green)
+  npm run typecheck    -> tsc, strict mode (must stay clean)
+  npm run build        -> production build to dist/ (any static host works)
+
+Before saying any change is done: run test + typecheck + build, then open the app and play
+at least one move each side.
+
+
+4. ARCHITECTURE AND FILE MAP
+----------------------------
+src/engine/         Pure TypeScript, no DOM. Safe to unit test and run in a worker.
+  types.ts          Position (incl. `blocked` for takasia), Move, MoveResult, SowEvent, Candidate
+  board.ts          Geometry (NYUMBA, facing), start position, pit naming,
+                    the screen layout (cellAt), move notation
+  ruleset.ts        RuleOptions + rulesets ZANZIBAR (default) and V1 (0.1.0 legacy),
+                    rulesFor(id)
+  rules.ts          simulate() plays one full turn and returns a Decision when a mid-turn
+                    choice (kichwa/safari) is still open; legalMoves() branches on those;
+                    status() decides wins; houseWorks(), captureTargets() (takasia)
+  search.ts         evaluate(), search() (alpha-beta + iterative deepening + TT),
+                    LEVELS, chooseMove()
+  coach.ts          advise() (best move + explanation + light data), describe(),
+                    analysePly() for review
+  game.ts           GameRecord (with ruleset), newGame(), gameRules(), replay()
+  protocol.ts       Worker message types (every request carries its RuleOptions)
+  engine.worker.ts  The worker: think / advise / analyse
+  rules.test.ts             0.1.0 behaviour tests (now under Zanzibar defaults)
+  rules.zanzibar.test.ts    Phase 1 golden tests: D1-D8, perft, invariants, both rulesets
+  search.test.ts            search, coach, game record and legacy replay
+src/ui/
+  Board.tsx         The carved board: 32 pits, seeds, coach light, review marks,
+                    animation highlight, takasia hatch (.blocked)
+  engineClient.ts   Promise wrapper around the workers; engine('play'|'coach'|'review')
+  storage.ts        localStorage/sessionStorage wrapped in try/catch (incl. ruleset choice)
+  route.ts          Tiny hash router
+src/screens/        Overview, Play, Review, Reader
+src/styles/app.css  All styling. Tokens at the top (:root), dark mode via
+                    prefers-color-scheme and [data-theme]
+
+Key conventions (do not break these):
+  - Pit index is ALWAYS in the owner's own frame: 0..7 inner left->right, 8..15 outer
+    right->left. +1 = clockwise from the owner's seat. Inner pit i faces opponent pit 7-i.
+  - Screen names come from the viewer's seat: A own inner, B own outer, C opponent inner,
+    D opponent outer, columns 1-8 counted from the viewer's left. Use pitName()/cellAt()
+    and never build names by hand.
+  - A Move fully describes a turn, including mid-turn choices (kichwa, safari), so
+    games replay deterministically from the start position, the moves and the ruleset.
+  - Every engine entry point takes RuleOptions (default ZANZIBAR). Always pass the game's
+    rules (gameRules(game)) and never assume the default for a saved game.
+  - Scores are in kete from the side to move's point of view; WIN = 1000.
+  - Ochre (--ochre) has ONE job: the coach light (suggested move, its path, its target,
+    turning points). Primary buttons use ink. Never use ochre for anything else.
+  - Fonts: Gloock (display) + Outfit (UI), with tabular numbers. No monospace font.
+
+
+5. RULESET
+----------
+See RULES.md. It lists the rules with their sources, and decisions D1-D11 with each one's
+status. A rules change goes in rules.ts (or a new RuleOptions switch in ruleset.ts),
+RULES.md, and a test in rules.zanzibar.test.ts, together. If a change alters what
+existing saved games mean, add a new ruleset id instead of editing an old one.
+
+
+6. DESIGN NOTES
+---------------
+  - The board is wood in both themes; only the page ground and ink switch for dark mode.
+  - Pit styles: .sel (your pick, light ring), .coach (ochre ring), .target (dashed ochre),
+    .lit (ochre light raking along the path), .you (review: your move), .hot (animation),
+    .blocked (takasia: cross-hatched in wood tones; deliberately not ochre).
+  - Accessibility: every pit has an aria-label ("A5 nyumba, 6 kete"; blocked pits add
+    "protected by takasia"); controls are real buttons or inputs at least 44px; the chart
+    bars are buttons; reduced motion is honoured.
+  - Dior's design rule: every project must look unlike the previous ones. Don't bring in
+    paper/ink ticket styles, Instrument Serif, Plex Mono, kanga borders or similar.
+
+
+7. ROADMAP
+----------
+Phase 1 · Rules confidence (DONE 2026-11-09, apart from the items marked [ ])
+  [x] Check D1-D7 against the reachable sources, and record evidence per decision
+      (RULES.md "Decisions" table)
+  [ ] Re-check against PRIMARY sources once you can get them: de Voogt 1995, Donkers et al.
+      computer-adapted rules, the 2006 ICGA never-ending-moves note. Settle RULES.md
+      "Open questions" (D3 end of nyumba in mtaji, D3b taxing variants, D8 takasia scope,
+      D9, D11)
+  [x] RuleOptions object (nyumbaStages, nyumbaMinSeeds, mtajiTaxing, takasia) threaded
+      through simulate/legalMoves/status/search/coach/worker; rulesets "zanzibar" and "v1"
+  [ ] Malawi variant (8-seed nyumba and other differences): not started
+  [x] Golden tests: hand-computed positions for every decision (rules.zanzibar.test.ts)
+  [ ] Golden tests from published or master games, with exact expected results
+  [x] Perft: legal-move counts from the opening pinned at depths 1-4 = 4, 14, 38, 124
+      (the same for both rulesets; the rules only differ later in the game)
+  [x] Exact never-ending-move detection (state repeat) and a real example in the tests
+
+Phase 2 · Engine strength
+  [ ] Zobrist hashing instead of string keys (speed)
+  [ ] Better move ordering (TT best move first, killer moves)
+  [ ] Quiescence search on capture chains
+  [ ] Evaluation tuning by self-play (mobility, vulnerable kete, house safety, takasia)
+  [ ] Benchmark script (nodes/sec, depth reached in 1s) and level calibration by
+      round-robin between levels
+  [ ] Optional: opening book of the strongest first moves
+
+Phase 3 · Play experience
+  [ ] Click any ply in the game record to step back and forward through the game
+  [ ] Pass-and-play for two humans; choose your seat (North or South)
+  [ ] Sound (seed click) with a mute toggle
+  [ ] Resign button; optional move clock
+  [ ] A "Why not this move?" coach answer for the pit you selected
+  [ ] A rules explainer drawer that shows the active ruleset's options (from RULES.md)
+
+Phase 4 · Review
+  [ ] Deeper analysis (time-boxed per ply), cached in storage
+  [ ] Export/import games as JSON plus text notation (with ruleset); a share link
+  [ ] Turning-point cards that show the coach's line, not just its first move
+
+Phase 5 · Board reader (computer vision)
+  [ ] Find the board's outline in the photo (OpenCV.js: edges + contours), then warp it flat
+  [ ] Cut out a region for each of the 32 pits; count seeds (Hough circles or blob
+      detection first, then a small CNN through ONNX Runtime Web if accuracy is low)
+  [ ] Per-pit confidence; dashed outline for uncertain pits (already in the design)
+  [ ] Collect a labelled photo set from real boards under different lighting
+  [ ] Keep everything on the device; no photo upload
+  [ ] Let the reader set the takasia-blocked pit and choose the ruleset
+
+Phase 6 · Ship
+  [ ] Self-host the fonts; PWA manifest + service worker for offline play
+  [ ] Kiswahili UI translation (i18n strings)
+  [ ] Playwright end-to-end tests (play a move, take back, review, reader flow)
+  [ ] First-run guide (opt-in coach marks) + help drawer with a glossary
+  [ ] Accessibility audit (axe) and screen-reader pass
+  [ ] Deploy to a static host (Netlify/Vercel/Cloudflare Pages); set base path if needed
+
+
+8. WORKING AGREEMENTS
+---------------------
+  - Engine code stays pure (no DOM, no React) so it can be tested and run in workers.
+  - Every rules change needs a test. Keep `npm test` and `npm run typecheck` green.
+  - Keep UI copy plain and short; explain Bao terms in place (kete, nyumba, kichwa,
+    namua, mtaji, takasa, takasia, safari).
+  - Git: DiorWachira is the only contributor. No "Co-Authored-By: Claude" or
+    "Generated with Claude Code" trailers in commits or PRs.
+  - Commit or push only when Dior asks.
+
+
+9. CHANGELOG
+------------
+  0.2.0 (2026-11-09) Phase 1: rules checked against sources; RuleOptions and rulesets;
+        6-seed nyumba, nyumba in mtaji, mtaji taxing, takasia, exact never-ending
+        detection, self-emptied front row loses; 50 tests; ruleset picker in Play.
+  0.1.0 (2026-11-09) First build: engine, AI, coach, four screens.
