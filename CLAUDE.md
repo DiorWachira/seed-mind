@@ -2,6 +2,7 @@
 
 Bao la Kiswahili engine and coach (Vite + React + TypeScript).
 
+- If Dior's message is just "continue": follow `roadmap.txt` section 0 ("NEXT SESSION") step by step, after reading the docs below.
 - Start here: read `roadmap.txt` (status and next work), then `docs/PROJECT_GUIDE.md` (how everything works, recipes, pitfalls), then `RULES.md` (the ruleset spec).
 - Checks: `npm test`, `npm run typecheck`, `npm run e2e`, `npm run build`. Quote the path; it has a space.
 - Live: https://diorwachira.github.io/seed-mind/ (GitHub Pages; pushing to `main` deploys after tests pass).

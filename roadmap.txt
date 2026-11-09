@@ -10,6 +10,39 @@ run the checks in section 3 before changing anything. Update section 2 (status) 
 checkboxes in section 7 whenever you finish something.
 
 
+0. NEXT SESSION (when Dior types "continue", start here)
+--------------------------------------------------------
+State at the end of the 2026-11-09 session: v0.3.1 is live and tested. Git is clean, and
+main is pushed and deployed (4 commits, DiorWachira only).
+
+Steps 1-4 below are not decisions; just do them. For step 5, ask which item Dior wants:
+
+  1. Re-orient: git status / git log -5; npm install; npm test; npm run typecheck;
+     npm run e2e. All must be green before any change (76 unit, 21 e2e).
+  2. Check the live site still works:
+     npx vite-node scripts/check-base.ts https://diorwachira.github.io/seed-mind/
+  3. Quick win: deploy.yml warns that actions/checkout@v4, setup-node@v4 and deploy-pages@v4
+     run on deprecated Node 20. Bump them to the current majors (check each exists first),
+     push, and watch the run (gh run watch).
+  4. Engine under the new default: tuning and level calibration ran under "zanzibar".
+     Re-run npm run levels and a short tune round with rules: DONKERS (scripts/levels.ts
+     and match-lib.ts take ZANZIBAR now; make the rules a CLI argument). Adjust LEVELS only
+     if a level stops beating the one below; bump ANALYSIS_VERSION if scores change.
+  5. Then offer Dior these, in order of value:
+     a. Coach explanations in Kiswahili: describe()/whyNot() text is English only. Add a
+        lang parameter (engine stays pure: pass templates in, or return structured facts
+        that the UI words through t()).
+     b. Board reader on real photos: a labelled set is needed. Dior would need to photograph
+        real boards; add a "save photo + counts" export so labels can be collected.
+     c. DK rule 1.2 ("game ends even during a move"): as a NEW ruleset id (never change
+        "donkers"), with a test.
+     d. Opening book (optional): deep-search the first 2-3 plies offline and ship a small table.
+     e. Native-speaker review of src/i18n/sw.ts (needs a person; Dior to arrange).
+     f. Manual screen-reader pass (NVDA/VoiceOver) of Play and the guide.
+     g. Still unreachable sources: de Voogt 1995 full text; the 2006 ICGA never-ending note.
+  Open decisions recorded: none pending (the default ruleset was decided: donkers, 0.3.1).
+
+
 1. WHAT SEED MIND IS
 --------------------
 A web app for Bao la Kiswahili, the 4x8 mancala of Zanzibar and the Swahili coast:
