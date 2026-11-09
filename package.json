@@ -1,7 +1,7 @@
 {
   "name": "seed-mind",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Bao la Kiswahili engine and coach: play the AI, review games, read a real board.",
   "type": "module",
   "scripts": {

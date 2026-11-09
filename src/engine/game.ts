@@ -1,6 +1,6 @@
 import { clonePosition, initialPosition } from './board';
 import { playTraced, status } from './rules';
-import { rulesFor, type RuleOptions, type RulesetId } from './ruleset';
+import { NEW_GAME_RULESET, rulesFor, type RuleOptions, type RulesetId } from './ruleset';
 import type { Move, Position, Side } from './types';
 
 export interface GameRecord {
@@ -44,7 +44,7 @@ export function resultText(g: GameRecord): string {
   return `${who === 'You' ? 'You won' : `${who} won`} · ${why}`;
 }
 
-export function newGame(level: number, human: Side = 0, start: Position = initialPosition(), ruleset: RulesetId = 'zanzibar', mode: GameMode = 'fundi'): GameRecord {
+export function newGame(level: number, human: Side = 0, start: Position = initialPosition(), ruleset: RulesetId = NEW_GAME_RULESET, mode: GameMode = 'fundi'): GameRecord {
   return {
     mode,
     id: `g${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,

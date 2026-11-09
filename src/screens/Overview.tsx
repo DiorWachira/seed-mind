@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { NYUMBA, initialPosition, pitName } from '../engine/board';
 import type { Advice } from '../engine/coach';
+import { rulesFor } from '../engine/ruleset';
 import type { Position, Side } from '../engine/types';
 import { Board } from '../ui/Board';
 import { engine } from '../ui/engineClient';
 import { useT, type T } from '../ui/i18n';
 import { go } from '../ui/route';
 import { useShell } from '../ui/shell';
+import { store } from '../ui/storage';
 
 const start = initialPosition();
 
@@ -32,7 +34,7 @@ export function Overview() {
   const [insp, setInsp] = useState<[Side, number] | null>(null);
   useEffect(() => {
     let live = true;
-    engine('coach').advise(start).then((a) => { if (live) setTip(a); }).catch(() => {});
+    engine('coach').advise(start, rulesFor(store.ruleset())).then((a) => { if (live) setTip(a); }).catch(() => {});
     return () => { live = false; };
   }, []);
 

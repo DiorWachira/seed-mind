@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { NYUMBA, TOTAL_KETE, facing, initialPosition, sum } from './board';
 import { captureTargets, legalMoves, playTraced, simulate, status } from './rules';
-import { V1, ZANZIBAR, type RuleOptions } from './ruleset';
+import { DONKERS, V1, ZANZIBAR, type RuleOptions } from './ruleset';
 import type { Move, MoveResult, Position } from './types';
 
 const blank = (): Position => ({
@@ -247,13 +247,13 @@ describe('D8 takasia', () => {
 });
 
 describe('perft (move-generation regression counts from the opening)', () => {
-  it.each([['zanzibar', ZANZIBAR], ['v1', V1]] as const)('%s', (_name, rules) => {
+  it.each([['zanzibar', ZANZIBAR], ['donkers', DONKERS], ['v1', V1]] as const)('%s', (_name, rules) => {
     expect([1, 2, 3, 4].map((d) => perft(initialPosition(), d, rules))).toEqual([4, 14, 38, 124]);
   });
 });
 
-describe('self-play invariants under both rulesets', () => {
-  it.each([['zanzibar', ZANZIBAR], ['v1', V1]] as const)('%s keeps 64 kete and ends', (_name, rules) => {
+describe('self-play invariants under every ruleset', () => {
+  it.each([['zanzibar', ZANZIBAR], ['donkers', DONKERS], ['v1', V1]] as const)('%s keeps 64 kete and ends', (_name, rules) => {
     let seed = 1234;
     const rnd = () => ((seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
     for (let g = 0; g < 30; g++) {

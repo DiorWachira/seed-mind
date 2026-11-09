@@ -36,7 +36,7 @@ export interface RuleOptions {
 
 export type RulesetId = 'zanzibar' | 'v1' | 'donkers';
 
-/** Default: Zanzibar rules as transcribed by de Voogt (via rulespal, Wikipedia, K.I.B.A.). */
+/** Zanzibar rules as transcribed from de Voogt by rulespal, Wikipedia and K.I.B.A. The new-game default until 0.3.1. */
 export const ZANZIBAR: RuleOptions = {
   nyumbaStages: 'both',
   nyumbaMinSeeds: 6,
@@ -69,11 +69,18 @@ export const DONKERS: RuleOptions = {
   safariMinSeeds: 0,
 };
 
+/** Engine functions use this when no rules are passed (tests rely on it). Apps always pass the game's own rules. */
 export const DEFAULT_RULES = ZANZIBAR;
 
+/**
+ * The ruleset for new games (since 0.3.1): Donkers' computer rules, written straight from
+ * de Voogt 1995, which side with K.I.B.A. where the secondary sources disagree (RULES.md).
+ */
+export const NEW_GAME_RULESET: RulesetId = 'donkers';
+
 export const RULESETS: { id: RulesetId; name: string; note: string; rules: RuleOptions }[] = [
-  { id: 'zanzibar', name: 'Zanzibar (de Voogt)', note: 'Full rules: the nyumba works in both stages while it holds 6+, mtaji taxing, takasia.', rules: ZANZIBAR },
   { id: 'donkers', name: 'Zanzibar, computer rules (Donkers)', note: 'De Voogt’s rules as written for computer play: the nyumba works only in namua, single-kete starts restricted, takasia.', rules: DONKERS },
+  { id: 'zanzibar', name: 'Zanzibar (de Voogt)', note: 'Full rules: the nyumba works in both stages while it holds 6+, mtaji taxing, takasia.', rules: ZANZIBAR },
   { id: 'v1', name: 'Simplified (Seed Mind 0.1)', note: 'The nyumba only matters during namua; no takasia.', rules: V1 },
 ];
 

@@ -96,6 +96,6 @@ describe('game record', () => {
       p = ms[k % ms.length].result.next;
     }
     expect(replay(g)[g.moves.length]).toEqual(p);
-    expect(newGame(3).ruleset).toBe('zanzibar');
+    expect(newGame(3).ruleset).toBe('donkers');
   });
 });

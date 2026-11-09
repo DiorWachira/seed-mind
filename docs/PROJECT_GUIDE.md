@@ -149,8 +149,10 @@ pit n−1, back hole n is pit 16−n, and "L" is −1 on the front row but +1 on
 
 ### 5.3 Rules (`ruleset.ts`, `rules.ts`)
 
-`RuleOptions` holds every rule the sources disagree on. Rulesets: `ZANZIBAR` (default),
-`DONKERS` (0.3, Donkers' computer rules), `V1` (the 0.1.0 rules, kept so old saves replay).
+`RuleOptions` holds every rule the sources disagree on. Rulesets: `DONKERS` (Donkers' computer
+rules; **the default for new games** since 0.3.1, via `NEW_GAME_RULESET`), `ZANZIBAR` (the
+engine's fallback, `DEFAULT_RULES`, when a call passes no rules), and `V1` (the 0.1.0 rules,
+kept so old saves replay).
 The optional fields added in 0.3 (`takasiaHouse`, `namuaSingleKete`, `kichwaToBack`,
 `safariMinSeeds`) default to the old behaviour, so `ZANZIBAR` and `V1` mean exactly what they
 meant. Every engine function takes `rules` with a ZANZIBAR default. **Always pass the game's
@@ -347,8 +349,8 @@ get scars); "matched the coach" means `loss < 0.5`; the chart is clamped to ±12
 ## 10. Testing
 
 - `npm test` (Vitest, Node):
-  - `rules.test.ts`, `rules.zanzibar.test.ts` (D1–D8, perft `[4, 14, 38, 124]`, a real
-    never-ending move, invariants under both old rulesets);
+  - `rules.test.ts`, `rules.zanzibar.test.ts` (D1–D8, perft `[4, 14, 38, 124]` and random
+    self-play invariants under all three rulesets, a real never-ending move);
   - `rules.donkers.test.ts`: the **Ramadhan v Kijumbe 1994** game replayed under all three
     rulesets (each ply matching exactly one legal turn), its "ends in nyumba" and "plays the
     house" annotations, and D3/D9/D12 under `donkers`;

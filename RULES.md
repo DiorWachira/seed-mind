@@ -34,8 +34,8 @@ Board Game Arena's Bao help page describes a simplified game with no namua, so i
 
 | Id | Name | Use |
 |----|------|-----|
-| `zanzibar` | Zanzibar (de Voogt) | **Default** for new games |
-| `donkers` | Zanzibar, computer rules (Donkers) | DK's computer rules: nyumba works in namua only, no mtaji taxing, D9 single-kete restriction, D12 no lone-kichwa suicide, D13 safari choice at any house size, any house exempt from takasia. Added in 0.3 |
+| `zanzibar` | Zanzibar (de Voogt) | The default for new games until 0.3.1; still offered, and still the engine's fallback when no rules are passed |
+| `donkers` | Zanzibar, computer rules (Donkers) | **Default for new games since 0.3.1.** DK's computer rules: nyumba works in namua only, no mtaji taxing, D9 single-kete restriction, D12 no lone-kichwa suicide, D13 safari choice at any house size, any house exempt from takasia. Added in 0.3 |
 | `v1` | Simplified (Seed Mind 0.1) | The 0.1.0 rules; kept so games saved by 0.1.0 (no `ruleset` field) replay exactly |
 
 ## Board and names
@@ -127,10 +127,17 @@ rulesets; North's 12th move ends in the nyumba and North plays the house on move
 record says. So the game confirms the engine but does not decide between the readings: none
 of its moves touch D3, D9, D12 or D13.
 
+## Default ruleset (decided 2026-11-09, 0.3.1)
+
+New games use **`donkers`**. DK is written directly from de Voogt 1995, so it is closer to the
+masters' rules than the three secondary transcriptions behind `zanzibar`. Where those
+transcriptions disagree, DK takes A's side on D3 (no nyumba powers in mtaji), while `zanzibar`
+followed W alone; and D9 is in both A and DK. The weak point is D13 (DK may have left out the
+6-kete minimum for the safari choice); it only matters in rare namua positions. Saved games keep
+the ruleset they were played with, and a player's own choice in Play is kept.
+
 ## Open questions to settle with a primary source
 
-- Default ruleset: `zanzibar` (the three secondary transcriptions) or `donkers` (DK, nearer to
-  de Voogt 1995). Seed Mind 0.3 keeps `zanzibar` as the default and offers `donkers`.
 - D13: whether DK's missing 6-kete threshold for the safari choice is deliberate.
 - DK 1.2: "the game ends if the front row of a player is empty (**even during a move**)".
   Seed Mind only checks at the end of a turn. Not implemented in any ruleset yet.

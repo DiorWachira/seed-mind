@@ -19,7 +19,7 @@ Kiswahili (draft) · no account, no server: everything runs in your browser.
 | **Game review** | Every move scored against the engine (quick or deep). Your game drawn as growth rings, an advantage chart, turning-point cards with the coach's whole line, and export/import as JSON, text notation or a share link |
 | **Board reader** | Photograph a real board (or upload one), mark or auto-find its corners, and Seed Mind counts the seeds on your device; unsure pits get a dashed ring |
 | **Mwongozo** | An opt-in first-run tour across all four screens, and a help drawer (press `?`) with the rules, a glossary, keys and how it works |
-| **Rulesets** | Zanzibar (de Voogt, default), Zanzibar computer rules (Donkers 2003), and the 0.1 simplified rules. See [RULES.md](RULES.md) |
+| **Rulesets** | Zanzibar computer rules (Donkers 2003, from de Voogt 1995; the default), Zanzibar (secondary transcriptions of de Voogt), and the 0.1 simplified rules. See [RULES.md](RULES.md) |
 
 | Play, with “Why not?” | Review as growth rings |
 |---|---|

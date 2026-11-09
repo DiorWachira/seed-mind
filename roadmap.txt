@@ -1,6 +1,6 @@
 SEED MIND · ROADMAP AND HANDOFF
 ================================
-Last updated: 2026-11-09 · version 0.3.0 (deployed to GitHub Pages)
+Last updated: 2026-11-09 · version 0.3.1 (deployed to GitHub Pages)
 Location: C:\dev\Seed Mind · Repo: https://github.com/DiorWachira/seed-mind
 Live: https://diorwachira.github.io/seed-mind/
 
@@ -27,13 +27,14 @@ Concept name: "Growth Rings" (carved hardwood board, grey komwe seeds, tree-ring
 References and what each became: README.md, "Design".
 
 
-2. CURRENT STATUS (v0.3.0)
+2. CURRENT STATUS (v0.3.1)
 --------------------------
 DONE and verified:
   [x] Vite + React 18 + TypeScript scaffold; static build; git repo; GitHub Pages deploy via
       Actions (typecheck + unit + e2e tests gate every deploy)
-  [x] Rules engine with three rulesets: "zanzibar" (default), "donkers" (0.3, from Donkers'
-      thesis appendix C, based on de Voogt 1995), "v1" (0.1 legacy)
+  [x] Rules engine with three rulesets: "donkers" (default for new games since 0.3.1, from
+      Donkers' thesis appendix C, based on de Voogt 1995), "zanzibar" (0.2's default), "v1"
+      (0.1 legacy). Reasons for the default: RULES.md "Default ruleset"
   [x] Published master game Ramadhan v Kijumbe (Zanzibar 1994) replays all 52 plies under
       every ruleset, each ply matching exactly one legal turn (rules.donkers.test.ts)
   [x] Search: Zobrist hashing, hash-move + killer ordering, PV, exact or plain root;
@@ -58,7 +59,6 @@ DONE and verified:
 
 NOT DONE / KNOWN LIMITS:
   [ ] de Voogt 1995 and the 2006 ICGA note still not read in full (Donkers 2003 now is)
-  [ ] Default ruleset: "zanzibar" kept; Donkers' reading is offered as "donkers". Decide.
   [ ] "Game ends even during a move" (Donkers 1.2) not implemented in any ruleset
   [ ] Board reader accuracy is measured only on synthetic photos (96.4% exact per pit);
       no labelled real photos yet; corner finding assumes a board darker than its background
@@ -192,6 +192,9 @@ Phase 6 · Ship
 
 9. CHANGELOG
 ------------
+  0.3.1 (2026-11-09) New games default to the "donkers" ruleset (closer to de Voogt 1995;
+        see RULES.md). Saved games and a player's own choice are unchanged. Perft and
+        self-play invariant tests now also run under "donkers".
   0.3.0 (2026-11-09) Deployed. Engine: Zobrist hashing, hash-move/killer ordering, PV,
         self-play-tuned evaluation (+288 Elo vs 0.2), calibrated levels, bench/match/tune/
         levels scripts. Rules: "donkers" ruleset from Donkers 2003 (D8b, D9, D12, D13), the

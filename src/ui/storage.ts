@@ -1,6 +1,6 @@
 import type { PlyAnalysis } from '../engine/coach';
 import type { GameRecord } from '../engine/game';
-import type { RulesetId } from '../engine/ruleset';
+import { NEW_GAME_RULESET, type RulesetId } from '../engine/ruleset';
 import type { Position } from '../engine/types';
 
 const K = {
@@ -73,7 +73,7 @@ export const store = {
   setLevel: (n: number) => write(K.level, n),
   coach: () => read<boolean>(K.coach, true),
   setCoach: (b: boolean) => write(K.coach, b),
-  ruleset: () => read<RulesetId>(K.ruleset, 'zanzibar'),
+  ruleset: () => read<RulesetId>(K.ruleset, NEW_GAME_RULESET),
   setRuleset: (r: RulesetId) => write(K.ruleset, r),
   theme: () => read<Theme>(K.theme, 'auto'),
   setTheme: (t: Theme) => write(K.theme, t),

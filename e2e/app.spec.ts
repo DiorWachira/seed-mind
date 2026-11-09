@@ -191,7 +191,7 @@ test.describe('guide and help', () => {
     await help.getByRole('tab', { name: 'Words' }).press('ArrowRight');
     await expect(help.getByRole('tab', { name: 'Keys' })).toHaveAttribute('aria-selected', 'true');
     await help.getByRole('tab', { name: 'Rules' }).click();
-    await expect(help).toContainText('Zanzibar (de Voogt)');
+    await expect(help).toContainText('Zanzibar, computer rules (Donkers)');
     await page.keyboard.press('Escape');
     await expect(help).toHaveCount(0);
     // "tour this screen" from the Help key
